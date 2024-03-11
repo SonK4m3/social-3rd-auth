@@ -1,0 +1,9 @@
+@startuml access_api_server
+
+Client -> ApiServer: send request
+ApiServer -> AuthServer: send token
+AuthServer -> AuthServer: get accessToken from token to verify with FB or GG
+AuthServer --> ApiServer: return
+ApiServer --> Client: return
+
+@enduml

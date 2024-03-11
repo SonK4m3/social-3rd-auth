@@ -1,0 +1,9 @@
+@startuml username_regisration
+
+Client -> AuthServer: send register form
+AuthServer -> Database: validate username
+AuthServer -> Database: save if username is not existing
+AuthServer -> AuthServer: generate token
+AuthServer -> Client: return token
+
+@enduml

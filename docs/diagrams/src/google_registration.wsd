@@ -1,0 +1,17 @@
+@startuml google_register
+
+Client -> AuthServer: Register by facebook
+AuthServer -> GoogleAuth: redirect to google login
+GoogleAuth --> Client: return login response
+Client -> AuthServer: send code
+AuthServer -> GoogleAuth: send code
+GoogleAuth --> Server: return user information
+AuthServer -> Database: validate email and goole_id
+Database --> AuthServer: return if email and goole_id are not existing
+AuthServer --> Client: return with user information
+Client -> AuthServer: send exist information
+AuthServer -> Database: save form
+AuthServer -> AuthServer: generate token
+AuthServer --> Client: return token
+
+@enduml

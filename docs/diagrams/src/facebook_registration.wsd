@@ -1,0 +1,15 @@
+@startuml facebook_register
+
+Client -> AuthServer: Register by facebook
+AuthServer -> FacebookDeveloper: redirect to facebook login
+FacebookDeveloper --> AuthServer: return login response
+AuthServer -> Database: validate user_id and email
+Database --> AuthServer: user_id and email are not existing
+AuthServer -> Database: save user_id and signedRequest
+AuthServer --> Client: return with user information
+Client -> AuthServer: send exist information
+AuthServer -> Database: save form
+AuthServer -> AuthServer: generate token
+AuthServer --> Client: return token
+
+@enduml

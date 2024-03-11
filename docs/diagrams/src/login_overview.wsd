@@ -1,0 +1,27 @@
+@startuml login_overview
+title Login
+
+Client -> AuthServer: send username and password
+AuthServer -> UserController: check login
+AuthServer -> Database: validate username and password
+Database --> AuthServer: return
+AuthServer -> AuthServer: authorize and generate token
+AuthServer --> Client: return with token
+
+newpage
+Client -> AuthServer: login with 3th party
+AuthServer -> 3rdParty: redirect
+AuthServer <-- 3rdParty: return successful login informations
+AuthServer -> AuthServer: authorize generate token
+AuthServer --> Client: return with token
+
+newpage
+Client -> ApiServer: send request
+ApiServer -> ApiServer: verify token
+ApiServer -> ApiServer: execute request
+ApiServer -> Database: access to db
+Database --> ApiServer: return data
+ApiServer --> Client: return response 
+
+
+@enduml
