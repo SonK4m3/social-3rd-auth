@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Grid } from '@mui/material';
+import { Grid, Box } from '@mui/material';
 import GreyButton from '../../components/GreyButton';
 import GreyTextField from '../../components/GreyTextField';
-import GoogleLoginButton from './GoogleLoginButton';
 
 interface LoginFormProps {
 	onSubmit: (email: string, password: string) => void; // Define function for handling form submission
@@ -49,7 +48,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
 					<GreyButton variant="contained" type="submit" fullWidth>
 						Login
 					</GreyButton>
-					<GoogleLoginButton />
 				</Grid>
 			</Grid>
 		</form>

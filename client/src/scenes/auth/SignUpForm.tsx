@@ -1,8 +1,7 @@
 import GreyButton from '@/components/GreyButton';
 import GreyTextField from '@/components/GreyTextField';
 import { Grid } from '@mui/material';
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
 
 interface SignUpFormProps {
 	onSubmit: (user: { email: string; name: string; password: string }) => void;

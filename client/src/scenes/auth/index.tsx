@@ -3,9 +3,12 @@ import LoginForm from '@/scenes/auth/LoginForm';
 import { useState } from 'react';
 import SignUpForm from './SignUpForm';
 import { useDispatch } from 'react-redux';
-import { useLoginMutation } from '@/state/api';
+import { useLoginMutation, useSignupMutation } from '@/state/api';
 import { authActions } from '@/store/authSlice';
 import { useNavigate } from 'react-router-dom';
+
+import GoogleLoginButton from './GoogleLoginButton';
+import FacebookLoginButton from './FacebookLoginButton';
 
 const Auth = () => {
 	const { palette } = useTheme();
@@ -13,6 +16,7 @@ const Auth = () => {
 
 	const dispatch = useDispatch();
 	const [login] = useLoginMutation();
+	const [signup] = useSignupMutation();
 
 	const navigate = useNavigate();
 
@@ -30,9 +34,18 @@ const Auth = () => {
 		}
 	};
 
-	const handleSignUp = (user: { email: string; name: string; password: string }) => {
-		const { email, name, password } = user;
-		console.log(`Email: ${email}, Name: ${name}, Password: ${password}`);
+	const handleSignUp = async (user: { email: string; name: string; password: string }) => {
+		try {
+			const signupResult = await signup({ ...user, role: 'user' }).unwrap();
+			if (signupResult.token.length > 0) {
+				dispatch(authActions.loginSuccess(signupResult));
+				navigate('/dashboard');
+			} else {
+				alert('Register failed');
+			}
+		} catch (err) {
+			console.log(err);
+		}
 	};
 
 	return (
@@ -76,6 +89,10 @@ const Auth = () => {
 						</Typography>
 					</Box>
 				</Paper>
+				<Box>
+					<GoogleLoginButton />
+					<FacebookLoginButton />
+				</Box>
 			</Container>
 		</Box>
 	);

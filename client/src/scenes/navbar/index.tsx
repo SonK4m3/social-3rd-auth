@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Box, Button, Typography, useTheme } from '@mui/material';
 import PixIcon from '@mui/icons-material/Pix';
 import FlexBetween from '@/components/FlexBetween';
@@ -22,8 +22,6 @@ const Navbar = (props: Props) => {
 
 	const dispatch = useDispatch();
 	const { isLoggedIn, isLoading } = useSelector((state: { auth: AuthState }) => state.auth);
-
-	const location = useLocation();
 
 	const handleLogout = async () => {
 		dispatch(authActions.logout());
