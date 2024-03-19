@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import session from 'express-session';
 import BaseRouter from './routes/abstractions/base.route';
 import { z } from 'zod';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
@@ -29,6 +30,14 @@ class App {
 			cors({
 				origin: ['http://localhost:3000'],
 				methods: 'GET,POST,PUT,DELETE,OPTIONS',
+			}),
+		);
+
+		this.app.use(
+			session({
+				resave: false,
+				saveUninitialized: true,
+				secret: 'SECRET',
 			}),
 		);
 

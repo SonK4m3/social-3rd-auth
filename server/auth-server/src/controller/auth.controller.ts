@@ -1,10 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 import UserRepository from '../repository/user.repository';
-import { CreateUserInput, LoginInput, UserResponse } from '../model/user.model';
+import { CreateUserInput, LoginInput } from '../model/user.model';
 import UserService from '../services/user.services';
 import { generateAccessToken } from '../middleware/authJwt';
+import { verifyFB } from '../middleware/authorization';
 
-interface GoogleUserInfo {
+type GoogleUserInfo = {
 	aud: string;
 	azp: string;
 	email: string;
@@ -20,7 +21,46 @@ interface GoogleUserInfo {
 	nbf: number;
 	picture: string;
 	sub: string;
-}
+};
+
+type SuccessResponse = {
+	/** An access token for the person using the webpage. */
+	accessToken: string;
+	/**
+	 * A UNIX time stamp when the token expires. Once the token expires, the person will need to login again.
+	 */
+	expiresIn: string;
+	/**
+	 * The amount of time before the login expires, in seconds, and the person will need to login again.
+	 */
+	reauthorize_required_in: string;
+	/**
+	 * A signed parameter that contains information about the person using your webpage.
+	 */
+	signedRequest: string;
+	/** The ID of the person using your webpage. */
+	userID: string;
+};
+
+type ProfileSuccessResponse = {
+	id?: string;
+	email?: string;
+	name?: string;
+	picture?: {
+		data: {
+			height: number;
+			width: string;
+			is_silhouette: boolean;
+			url: string;
+		};
+	};
+	[key: string]: any;
+};
+
+type FacebookRequest = {
+	success: SuccessResponse;
+	profile: ProfileSuccessResponse;
+};
 
 const userRepository = new UserRepository();
 const userService: UserService = new UserService(userRepository);
@@ -107,13 +147,43 @@ export default class AuthController {
 	}
 
 	async oauth2Facebook(req: Request, res: Response, next: NextFunction) {
+		const body = req.body as FacebookRequest;
 		try {
-			const userProfile = req.body;
+			const token = verifyFB(body.success.signedRequest, process.env.FB_APP_ID as string);
+			const { email, id, name } = body.profile;
+			if (email === undefined || name === undefined || id === undefined)
+				return res.status(400).json({
+					message: 'Cannot login with Facebook',
+				});
 
-			const jwtToken = generateAccessToken({ id: userProfile.aud, email: userProfile.email });
+			const existingUser = await userService.findUserByEmail(email);
+			let jwtToken = '';
+			if (!existingUser) {
+				const { password, ...rest } = await userService.createUser({
+					email: email,
+					password: id,
+					name: name,
+					role: 'user',
+				});
+				jwtToken = generateAccessToken({
+					email: rest.email,
+					id: rest.id,
+				});
+			} else {
+				jwtToken = generateAccessToken({
+					email: existingUser.email,
+					id: existingUser.id,
+				});
+			}
+			if (jwtToken === '')
+				return res.status(400).json({
+					message: 'Userinfo is incorrect',
+				});
 			res.status(200).json({ token: jwtToken });
 		} catch (err) {
 			next(err);
 		}
 	}
+
+	async logout(req: Request, res: Response, next: NextFunction) {}
 }

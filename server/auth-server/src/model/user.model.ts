@@ -38,8 +38,14 @@ const loginResponseSchema = z.object({
 	access_token: z.string(),
 });
 
+const ggRequestSchema = z.object({
+	credential: z.string(),
+	clientId: z.string(),
+	select_by: z.string().nullable(),
+});
+
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type UserResponse = z.infer<typeof userRepsonseSchema>;
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
-export { createUserSchema, loginSchema };
+export { createUserSchema, loginSchema, ggRequestSchema };

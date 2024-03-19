@@ -1,7 +1,7 @@
 import AuthController from '../controller/auth.controller';
 import { verifyGoogleToken } from '../middleware/authorization';
 import { validateRequest } from '../middleware/validateRequest';
-import { createUserSchema, loginSchema } from '../model/user.model';
+import { createUserSchema, ggRequestSchema, loginSchema } from '../model/user.model';
 import BaseRouter from './abstractions/base.route';
 
 class AuthenticationRouter extends BaseRouter {
@@ -17,12 +17,15 @@ class AuthenticationRouter extends BaseRouter {
 		this.router.post('/signup', [validateRequest(createUserSchema)], this.authController.signup);
 		this.router.post('/signin', [validateRequest(loginSchema)], this.authController.signin);
 
-		this.router.post('/google', [verifyGoogleToken], this.authController.oauth2Google);
-		this.router.get('/google/redirect', (req, res) => {
-			res.send('This is the callback route');
-		});
+		this.router.post(
+			'/google',
+			[validateRequest(ggRequestSchema), verifyGoogleToken],
+			this.authController.oauth2Google,
+		);
 
 		this.router.post('/facebook', this.authController.oauth2Facebook);
+
+		this.router.post('/logout', this.authController.logout);
 	}
 }
 
