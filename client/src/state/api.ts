@@ -28,29 +28,13 @@ export const blogApi = createApi({
 
 export const authApi = createApi({
 	reducerPath: 'authApi',
-	baseQuery: fetchBaseQuery({
-		baseUrl: import.meta.env.VITE_BASE_URL,
-	}),
+	baseQuery: fetchBaseQuery({ baseUrl: import.meta.env.VITE_BASE_URL }),
 	endpoints: (builder) => ({
 		login: builder.mutation({
-			query: (credentials: { email: string; password: string }) => ({
+			query: (credentials) => ({
 				url: '/auth/signin',
 				method: 'POST',
 				body: credentials,
-			}),
-		}),
-		signup: builder.mutation({
-			query: (credentials: { email: string; name: string; password: string; role: string }) => ({
-				url: '/auth/signup',
-				method: 'POST',
-				body: credentials,
-			}),
-		}),
-		oauth: builder.mutation({
-			query: (props: { credentials: { [key: string]: any }; provider: 'fb' | 'gg' }) => ({
-				url: props.provider === 'fb' ? '/auth/facebook' : '/auth/google',
-				method: 'POST',
-				body: props.credentials,
 			}),
 		}),
 		// ... other endpoints
@@ -58,4 +42,4 @@ export const authApi = createApi({
 });
 
 export const { useGetPostsQuery } = blogApi;
-export const { useLoginMutation, useSignupMutation, useOauthMutation } = authApi;
+export const { useLoginMutation } = authApi;
