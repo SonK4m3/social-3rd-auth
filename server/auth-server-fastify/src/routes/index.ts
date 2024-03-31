@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import authRoutes from './auth.route';
+import { authController } from '../controllers/auth.controller';
 
 import { userSchemas } from '../models/user.model';
 
@@ -10,7 +11,7 @@ const routes = async (server: FastifyInstance) => {
 		server.addSchema(schema);
 	}
 
-	//authorization
+	//Authentication routes
 	server.addHook('onRequest', async (request: FastifyRequest<{}>, reply) => {
 		const routePath = request.routeOptions.url;
 
@@ -25,10 +26,23 @@ const routes = async (server: FastifyInstance) => {
 
 		// Verify JWT
 		await request.jwtVerify();
+
+		// Check if the token is blacklisted
+		const authorizationHeader = request.headers.authorization;
+		const token = authorizationHeader?.split(' ')[1] || '';
+		if (authController.tokenBlacklist.includes(token)) {
+			throw new Error('Token is invalid');
+		}
 	});
 
 	// register sub-routes
 	server.register(authRoutes, { prefix: '/auth' });
+	server.get('/test', (request, reply) => {
+		reply.send({
+			blacklisted: authController.tokenBlacklist,
+			user: request.user,
+		});
+	});
 };
 
 export default routes;
