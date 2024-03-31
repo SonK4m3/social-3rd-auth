@@ -36,7 +36,7 @@ const loginSchema = z.object({
 });
 
 const loginResponseSchema = z.object({
-	access_token: z.string(),
+	token: z.string(),
 });
 
 const ggRequestSchema = z.object({
