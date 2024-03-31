@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { authController } from '../controllers/auth.controller';
-import { $ref, CreateUserInput, LoginInput } from '../models/user.model';
+import { $ref, CreateUserInput, FacebookRequest, GoogleLoginRequest, LoginInput } from '../models/user.model';
 
 const userRoutes = async (server: FastifyInstance) => {
 	server.post(
@@ -19,14 +19,14 @@ const userRoutes = async (server: FastifyInstance) => {
 	server.post(
 		'/facebook',
 		{ schema: { body: $ref('loginSchema'), response: { 200: $ref('loginResponseSchema') } } },
-		(request: FastifyRequest<{ Body: LoginInput }>, reply: FastifyReply) =>
+		(request: FastifyRequest<{ Body: FacebookRequest }>, reply: FastifyReply) =>
 			authController.oauthWithFacebook(request, reply),
 	);
 
 	server.post(
 		'/google',
 		{ schema: { body: $ref('loginSchema'), response: { 200: $ref('loginResponseSchema') } } },
-		(request: FastifyRequest<{ Body: LoginInput }>, reply: FastifyReply) =>
+		(request: FastifyRequest<{ Body: GoogleLoginRequest }>, reply: FastifyReply) =>
 			authController.oauthWithGoogle(request, reply),
 	);
 

@@ -1,8 +1,8 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { CreateUserInput, LoginInput } from '../models/user.model';
+import { CreateUserInput, FacebookRequest, GoogleLoginRequest, LoginInput } from '../models/user.model';
 import UserRepository from '../repositories/user.repository';
 import UserService from '../services/user.services';
-import { VerifyPayloadType } from '@fastify/jwt';
+import { verifyFB, verifyGoogleToken } from '../utils/oauth2';
 
 const userRepository: UserRepository = new UserRepository();
 const userService: UserService = new UserService(userRepository);
@@ -47,9 +47,65 @@ class AuthController {
 		return users;
 	}
 
-	async oauthWithGoogle(request: FastifyRequest<{ Body: LoginInput }>, reply: FastifyReply) {}
+	async oauthWithGoogle(request: FastifyRequest<{ Body: GoogleLoginRequest }>, reply: FastifyReply) {
+		const userProfile = await verifyGoogleToken(request.body);
+		const { email, aud, name } = userProfile;
+		const existingUser = await userService.findUserByEmail(email);
+		let jwtToken = '';
+		if (!existingUser) {
+			const { password, ...rest } = await userService.createUser({
+				email: email,
+				password: aud,
+				name: name,
+				role: 'user',
+			});
+			jwtToken = await reply.jwtSign(rest);
+		} else {
+			const { password, ...rest } = existingUser;
+			jwtToken = await reply.jwtSign(rest);
+		}
+		if (jwtToken === '')
+			return reply.status(400).send({
+				message: 'Userinfo is incorrect',
+			});
+		return {
+			token: jwtToken,
+		};
+	}
 
-	async oauthWithFacebook(request: FastifyRequest<{ Body: LoginInput }>, reply: FastifyReply) {}
+	async oauthWithFacebook(request: FastifyRequest<{ Body: FacebookRequest }>, reply: FastifyReply) {
+		const body: FacebookRequest = request.body;
+
+		const token = await verifyFB(body.success.signedRequest, process.env.FB_APP_ID as string);
+
+		const { email, id, name } = body.profile;
+		if (email === undefined || name === undefined || id === undefined)
+			return reply.status(400).send({
+				message: 'Cannot login with Facebook',
+			});
+
+		const existingUser = await userService.findUserByEmail(email);
+		let jwtToken = '';
+		if (!existingUser) {
+			const { password, ...rest } = await userService.createUser({
+				email: email,
+				password: id,
+				name: name,
+				role: 'user',
+			});
+			jwtToken = await reply.jwtSign(rest);
+		} else {
+			const { password, ...rest } = existingUser;
+			jwtToken = await reply.jwtSign(rest);
+		}
+		if (jwtToken === '')
+			return reply.status(400).send({
+				message: 'Userinfo is incorrect',
+			});
+		return {
+			token: jwtToken,
+		};
+	}
 
 	async logout(request: FastifyRequest, reply: FastifyReply) {
 		// Retrieve the token from the request headers
